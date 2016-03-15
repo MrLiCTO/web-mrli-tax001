@@ -1,0 +1,103 @@
+package com.shilong.home.action;
+
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Resource;
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.struts2.ServletActionContext;
+
+import com.opensymphony.xwork2.ActionSupport;
+import com.shilong.core.util.QueryHelper;
+import com.shilong.nsfw.user.entity.User;
+import com.shilong.nsfw.user.service.UserService;
+
+import net.sf.json.JSONObject;
+
+public class HomeAction extends ActionSupport {
+	@Resource
+	private UserService userService;
+	
+	private Map<String,Object> return_map;
+	
+	public String execute(){
+		return "home";
+	}
+	
+	public String complainAddUI(){
+		return "complainAddUI";
+	}
+	
+	public void getUserJson(){
+		try {
+			String dept=ServletActionContext.getRequest().getParameter("dept");
+			if(StringUtils.isNotBlank(dept)){
+				QueryHelper qh=new QueryHelper(User.class,"u");
+				
+				qh.addCondition("u.dept like ?",dept);
+				
+				List<User> userList=userService.findObjects(qh);
+				
+				JSONObject json=new JSONObject();
+				
+				json.put("msg","success");
+				
+				json.accumulate("userList",userList);
+				
+				HttpServletResponse resp = ServletActionContext.getResponse();
+				resp.setContentType("text/html");
+				ServletOutputStream out = resp.getOutputStream();
+				
+				out.write(json.toString().getBytes("utf-8"));
+
+				out.close();
+
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	
+	public String getUserJson1(){
+		try {
+			String dept=ServletActionContext.getRequest().getParameter("dept");
+			if(StringUtils.isNotBlank(dept)){
+				QueryHelper qh=new QueryHelper(User.class,"u");
+				
+				qh.addCondition("u.dept like ?","%"+dept);
+				
+				List userList=userService.findObjects(qh);
+				
+				return_map=new HashMap<String,Object>();
+				
+				return_map.put("userList",userList);
+				
+				return_map.put("msg","success");
+
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return SUCCESS;
+	}
+
+	public Map<String, Object> getReturn_map() {
+		return return_map;
+	}
+
+	public void setReturn_map(Map<String, Object> return_map) {
+		this.return_map = return_map;
+	}
+
+	
+	
+	
+}

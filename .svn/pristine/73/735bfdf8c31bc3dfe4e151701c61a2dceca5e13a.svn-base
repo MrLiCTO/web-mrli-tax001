@@ -1,0 +1,9 @@
+package com.shilong.nsfw.complain.dao.impl;
+
+import com.shilong.core.dao.impl.BaseDaoImpl;
+import com.shilong.nsfw.complain.dao.ComplainDao;
+import com.shilong.nsfw.complain.entity.Complain;
+
+public class ComplainDaoImpl extends BaseDaoImpl<Complain> implements ComplainDao {
+
+}

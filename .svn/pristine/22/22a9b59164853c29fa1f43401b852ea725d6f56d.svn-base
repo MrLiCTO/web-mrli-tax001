@@ -1,0 +1,61 @@
+package com.shilong.nsfw.complain.service.impl;
+
+import java.util.Calendar;
+import java.util.List;
+
+import javax.annotation.Resource;
+
+import org.springframework.stereotype.Service;
+
+import com.shilong.core.service.impl.BaseserviceImpl;
+import com.shilong.core.util.QueryHelper;
+import com.shilong.nsfw.complain.dao.ComplainDao;
+import com.shilong.nsfw.complain.entity.Complain;
+import com.shilong.nsfw.complain.service.ComplainService;
+@Service("complainService")
+public class ComplainServiceImpl extends BaseserviceImpl<Complain>implements ComplainService {
+	private ComplainDao complainDao;
+	
+	@Resource
+	public void setComplainDao(ComplainDao complainDao) {
+		super.setBaseDao(complainDao);
+		this.complainDao = complainDao;
+	}
+
+	@Override
+	public void autoDeal() {
+		QueryHelper qh=new QueryHelper(Complain.class,"c");
+		
+		
+		
+		qh.addCondition("c.state=?",Complain.COMPLAIN_STATE_UNDONE);
+		
+		Calendar cd=Calendar.getInstance();
+		
+		cd.set(Calendar.DAY_OF_MONTH, 1);
+		
+		cd.set(Calendar.HOUR_OF_DAY, 0);
+		
+		cd.set(Calendar.MINUTE, 0);
+		
+		
+		cd.set(Calendar.SECOND, 0);
+		
+		
+		
+		
+		
+		qh.addCondition("c.compTime<?",cd.getTime());
+		
+		
+		List<Complain> list=this.findObjects(qh);
+		
+		if(list!=null&&list.size()>0){
+			for(Complain comp:list){
+				comp.setState(Complain.COMPLAIN_STATE_INVALID);
+				this.update(comp);
+			}
+		}
+		
+	}
+}

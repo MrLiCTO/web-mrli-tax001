@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd">
+	
+	<!-- 注册一个普通bean -->
+	<bean id="quartzTask" class="com.shilong.nsfw.complain.QuartzTask"></bean>
+	<!--1.指定任务详细信息  -->
+	<bean id="jobDetail1" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+			<!--设置执行对象  -->
+			<property name="targetObject" ref="quartzTask"></property>
+			<!-- 设置执行对象中对应的方法 -->
+			<property name="targetMethod" value="doSimpleTriggerTask"></property>
+			<!-- 是否可以同步执行,false为不同步 -->
+			<property name="concurrent" value="false"></property>
+	</bean>
+	
+	<bean id="jobDetail2" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+			<!--设置执行对象  -->
+			<property name="targetObject" ref="quartzTask"></property>
+			<!-- 设置执行对象中对应的方法 -->
+			<property name="targetMethod" value="doCronTriggerTask"></property>
+			<!-- 是否可以同步执行,false为不同步 -->
+			<property name="concurrent" value="false"></property>
+	</bean>
+	
+	<!-- 2.指定任务执行时机 （任务执行触发器）-->
+	<!-- 2.1简单触发器（SimpleTrigger）-->
+	<bean id="simpleTrigger" class="org.springframework.scheduling.quartz.SimpleTriggerBean">
+		<!-- 设置任务详细信息 -->
+		<property name="jobDetail" ref="jobDetail1"></property>
+		<!--设置任务延迟执行时间  ,单位毫秒-->
+		<property name="startDelay" value="2000"></property>
+		<!-- 设置任务执行频率  ,单位毫秒-->
+		<property name="repeatInterval" value="4000"></property>
+	</bean>
+	<!-- 2.2任务触发器（CronTrigger）-->
+	
+	<bean id="cronTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+		<!-- 设置任务详细信息 -->
+		<property name="jobDetail" ref="jobDetail2"></property>
+		<!-- 设置  任务执行表达式:秒 分 时 日 月 周 年（年是可选的）(/ - , ? l(日期的最后一天))W表示最近的一个工作日，C：5C 五号之后执行 ，3#4：本月的第四个星期2-->
+		<property name="cronExpression" value="0/3 * * * * ?"></property><!-- 从0秒开始，每3秒执行一次 -->
+	</bean>
+	
+	<!-- 3.设置调度工厂 -->
+	
+	<bean class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+		<!-- 设置触发器们 -->
+		<property name="triggers">
+			<list>
+				<ref bean="simpleTrigger"></ref>
+				<ref bean="cronTrigger"></ref>
+			</list>
+		
+		</property>
+	</bean>
+	
+</beans>

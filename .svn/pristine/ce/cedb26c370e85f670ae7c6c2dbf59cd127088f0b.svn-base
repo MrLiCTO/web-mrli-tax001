@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<!-- Generated 2015-8-2 19:36:06 by Hibernate Tools 3.4.0.CR1 -->
+<hibernate-mapping>
+    <class name="com.shilong.nsfw.user.entity.UserRole" table="user_role">
+       	<composite-id name="id" class="com.shilong.nsfw.user.entity.UserRoleId">
+       		<key-many-to-one name="role" class="com.shilong.nsfw.role.entity.Role">
+       			<column name="role_id"></column>
+       		</key-many-to-one>
+       		
+       		<key-property name="userId" type="java.lang.String" length="32">
+       			<column name="user_Id"></column>
+       		</key-property>
+       	</composite-id>
+    </class>
+</hibernate-mapping>

@@ -1,0 +1,183 @@
+package com.shilong.nsfw.complain.action;
+
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.sql.Timestamp;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.time.DateUtils;
+import org.apache.struts2.ServletActionContext;
+
+import com.opensymphony.xwork2.ActionContext;
+import com.shilong.core.action.BaseAction;
+import com.shilong.core.page.PageResult;
+import com.shilong.core.util.QueryHelper;
+import com.shilong.nsfw.complain.entity.Complain;
+import com.shilong.nsfw.complain.entity.ComplainReply;
+import com.shilong.nsfw.complain.service.ComplainService;
+
+public class ComplainAction extends BaseAction {
+	@Resource
+	private ComplainService complainService;
+	
+	private Complain complain;
+	
+	private String startTime;
+	private String endTime;
+	
+	private String strTitle;
+	private String strState;
+	
+	private ComplainReply reply;
+	
+	private Map<String,Object> statisticMap;
+		
+		public String listUI() throws Exception{
+			ActionContext.getContext().put("complainStateMap",Complain.COMPLAIN_STATE_MAP);
+			QueryHelper qh=new QueryHelper(Complain.class,"c");
+			
+			if(StringUtils.isNotBlank(startTime)){
+				startTime=URLDecoder.decode(startTime,"utf-8");
+				qh.addCondition("c.compTime > ?",DateUtils.parseDate(startTime, "yyyy-MM-dd HH:mm"));
+			}
+			
+			if (StringUtils.isNotBlank(endTime)) {
+				endTime=URLDecoder.decode(endTime,"utf-8");
+				qh.addCondition("c.compTime < ?",DateUtils.parseDate(endTime, "yyyy-MM-dd HH:mm"));
+				
+			}
+			
+			if(complain!=null){
+				if(StringUtils.isNotBlank(complain.getCompTitle())){
+					complain.setCompTitle(URLDecoder.decode(complain.getCompTitle(), "utf-8"));
+					qh.addCondition("c.compTitle like ?","%"+complain.getCompTitle()+"%");
+				}
+				
+				if(StringUtils.isNotBlank(complain.getState())){
+					//complain.setCompTitle(URLDecoder.decode(complain.getState(),"utf-8"));
+					qh.addCondition("c.state=?",complain.getState());
+				}	
+			}
+			
+			qh.addOrderByProperty("c.state",QueryHelper.ORDER_BY_ASC);
+			qh.addOrderByProperty("c.compTime",QueryHelper.ORDER_BY_ASC);
+			
+			pageResult=complainService.getPageResult(qh, getPageNo(),getPageSize());
+			return "listUI";
+		}
+		
+		public String dealUI(){
+			ActionContext.getContext().put("complainStateMap",Complain.COMPLAIN_STATE_MAP);
+			if(complain!=null){
+				strTitle=complain.getCompTitle();
+				strState=complain.getState();
+				complain=complainService.findObjectById(complain.getCompId());
+			}
+			return "dealUI";
+		}
+		
+		public String deal(){
+			if(complain!=null){
+				Complain temp=complainService.findObjectById(complain.getCompId());
+				if(!Complain.COMPLAIN_STATE_DONE.equals(temp.getState())){
+					temp.setState(Complain.COMPLAIN_STATE_DONE);
+				}
+				
+				if(reply!=null){
+					reply.setComplain(temp);
+					reply.setReplyTime(new Timestamp(new Date().getTime()));
+					temp.getComplainReplies().add(reply);
+				}
+				complainService.update(temp);
+			}
+			return "list";
+		}
+		
+		public String annualStatisticChartUI(){
+			return "annualStatisticChartUI";
+		}
+		
+		public String getAnnualStatisticData(){
+			HttpServletRequest request=ServletActionContext.getRequest();
+			int year=0;
+			if(request.getParameter("year")!=null){
+				year=Integer.valueOf(request.getParameter("year"));
+			}else{
+				year=Calendar.getInstance().get(Calendar.YEAR);
+			}
+			statisticMap=new HashMap<String,Object>();
+			statisticMap.put("msg","success");
+			statisticMap.put("chartData", complainService.getAnnualStatisticDataByYear(year));
+			//System.out.println("+++++++++++++"+statisticMap+"++++++++++++++++++++");
+			return "annualStatisticData";
+		}
+
+		public Complain getComplain() {
+			return complain;
+		}
+
+		public void setComplain(Complain complain) {
+			this.complain = complain;
+		}
+
+		public String getStartTime() {
+			return startTime;
+		}
+
+		public void setStartTime(String startTime) {
+			this.startTime = startTime;
+		}
+
+		public String getEndTime() {
+			return endTime;
+		}
+
+		public void setEndTime(String endTime) {
+			this.endTime = endTime;
+		}
+
+		public ComplainReply getReply() {
+			return reply;
+		}
+
+		public void setReply(ComplainReply reply) {
+			this.reply = reply;
+		}
+
+		public String getStrTitle() {
+			return strTitle;
+		}
+
+		public void setStrTitle(String strTitle) {
+			this.strTitle = strTitle;
+		}
+
+		public String getStrState() {
+			return strState;
+		}
+
+		public void setStrState(String strState) {
+			this.strState = strState;
+		}
+
+		public Map<String, Object> getStatisticMap() {
+			return statisticMap;
+		}
+
+		public void setStatisticMap(Map<String, Object> statisticMap) {
+			this.statisticMap = statisticMap;
+		}
+
+		
+		
+
+		
+		
+}

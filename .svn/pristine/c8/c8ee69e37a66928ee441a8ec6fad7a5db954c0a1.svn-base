@@ -1,0 +1,35 @@
+package com.shilong.nsfw.complain.action;
+
+import javax.annotation.Resource;
+
+import com.opensymphony.xwork2.ActionContext;
+import com.shilong.core.action.BaseAction;
+import com.shilong.core.page.PageResult;
+import com.shilong.core.util.QueryHelper;
+import com.shilong.nsfw.complain.entity.Complain;
+import com.shilong.nsfw.complain.service.ComplainService;
+
+public class ComplainAction extends BaseAction {
+	@Resource
+	private ComplainService complainService;
+	
+	private Complain complain;
+		
+		public String listUI(){
+			ActionContext.getContext().put("complainStateMap",Complain.COMPLAIN_STATE_MAP);
+			QueryHelper qh=new QueryHelper(Complain.class,"c");
+			pageResult=complainService.getPageResult(qh, getPageNo(),getPageSize());
+			return "listUI";
+		}
+
+		public Complain getComplain() {
+			return complain;
+		}
+
+		public void setComplain(Complain complain) {
+			this.complain = complain;
+		}
+		
+		
+		
+}
